@@ -10,8 +10,10 @@ void EpubReaderMenuActivity::onEnter() {
   ActivityWithSubactivity::onEnter();
   renderingMutex = xSemaphoreCreateMutex();
   updateRequired = true;
-
-  xTaskCreate(&EpubReaderMenuActivity::taskTrampoline, "EpubMenuTask", 4096, this, 1, &displayTaskHandle);
+  if (mappedInput.isPressed(MappedInputManager::Button::Confirm)) {
+    enteredWhileConfirmPressed = true;
+  }
+    xTaskCreate(&EpubReaderMenuActivity::taskTrampoline, "EpubMenuTask", 4096, this, 1, &displayTaskHandle);
 }
 
 void EpubReaderMenuActivity::onExit() {
@@ -61,6 +63,10 @@ void EpubReaderMenuActivity::loop() {
 
   // Use local variables for items we need to check after potential deletion
   if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
+    if (enteredWhileConfirmPressed) {
+      enteredWhileConfirmPressed = false;
+      return;
+    }
     const auto selectedAction = menuItems[selectedIndex].action;
     if (selectedAction == MenuAction::ROTATE_SCREEN) {
       // Cycle orientation preview locally; actual rotation happens on menu exit.

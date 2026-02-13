@@ -184,8 +184,12 @@ void EpubReaderActivity::loop() {
     return;
   }
 
+  if (mappedInput.wasReleased(MappedInputManager::Button::Power)) {
+    ignoreFrontButtons = !ignoreFrontButtons;
+  }  
+
   // Enter reader menu activity.
-  if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
+  if (mappedInput.isPressed(MappedInputManager::Button::Confirm) && (mappedInput.getHeldTime() >= goHomeMs || !ignoreFrontButtons)) {
     // Don't start activity transition while rendering
     xSemaphoreTake(renderingMutex, portMAX_DELAY);
     const int currentPage = section ? section->currentPage + 1 : 0;
@@ -209,26 +213,26 @@ void EpubReaderActivity::loop() {
     onGoBack();
     return;
   }
-
   // Short press BACK goes directly to home
-  if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
+  if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs && !ignoreFrontButtons) {
     onGoHome();
     return;
   }
 
   // When long-press chapter skip is disabled, turn pages on press instead of release.
   const bool usePressForPageTurn = !SETTINGS.longPressChapterSkip;
-  const bool prevTriggered = usePressForPageTurn ? (mappedInput.wasPressed(MappedInputManager::Button::PageBack) ||
-                                                    mappedInput.wasPressed(MappedInputManager::Button::Left))
-                                                 : (mappedInput.wasReleased(MappedInputManager::Button::PageBack) ||
-                                                    mappedInput.wasReleased(MappedInputManager::Button::Left));
-  const bool powerPageTurn = SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::PAGE_TURN &&
-                             mappedInput.wasReleased(MappedInputManager::Button::Power);
+  const bool prevTriggered = usePressForPageTurn
+                                 ? (mappedInput.wasPressed(MappedInputManager::Button::PageBack) ||
+                                    mappedInput.wasPressed(MappedInputManager::Button::Left) && !ignoreFrontButtons)
+                                 : (mappedInput.wasReleased(MappedInputManager::Button::PageBack) ||
+                                    mappedInput.wasReleased(MappedInputManager::Button::Left) && !ignoreFrontButtons);
+  const bool powerPageTurn = false; /*SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::PAGE_TURN &&
+                             mappedInput.wasReleased(MappedInputManager::Button::Power);*/
   const bool nextTriggered = usePressForPageTurn
                                  ? (mappedInput.wasPressed(MappedInputManager::Button::PageForward) || powerPageTurn ||
-                                    mappedInput.wasPressed(MappedInputManager::Button::Right))
+                                    mappedInput.wasPressed(MappedInputManager::Button::Right) && !ignoreFrontButtons)
                                  : (mappedInput.wasReleased(MappedInputManager::Button::PageForward) || powerPageTurn ||
-                                    mappedInput.wasReleased(MappedInputManager::Button::Right));
+                                    mappedInput.wasReleased(MappedInputManager::Button::Right) && !ignoreFrontButtons);
 
   if (!prevTriggered && !nextTriggered) {
     return;

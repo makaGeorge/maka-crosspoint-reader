@@ -56,6 +56,7 @@ class EpubReaderMenuActivity final : public ActivityWithSubactivity {
   int currentPage = 0;
   int totalPages = 0;
   int bookProgressPercent = 0;
+  bool enteredWhileConfirmPressed = false;
 
   const std::function<void(uint8_t)> onBack;
   const std::function<void(MenuAction)> onAction;

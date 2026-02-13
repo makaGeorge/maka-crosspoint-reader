@@ -323,7 +323,7 @@ int CrossPointSettings::getReaderFontId() const {
     case NOTOSANS:
       switch (fontSize) {
         case SMALL:
-          return NOTOSANS_12_FONT_ID;
+          return NOTOSANS_10_FONT_ID;
         case MEDIUM:
         default:
           return NOTOSANS_14_FONT_ID;
