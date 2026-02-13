@@ -52,7 +52,7 @@ inline std::vector<SettingInfo> getSettingsList() {
                         {"Prev, Next", "Next, Prev"}, "sideButtonLayout", "Controls"),
       SettingInfo::Toggle("Long-press Chapter Skip", &CrossPointSettings::longPressChapterSkip, "longPressChapterSkip",
                           "Controls"),
-      SettingInfo::Enum("Short Power Button Click", &CrossPointSettings::shortPwrBtn, {"Ignore", "Sleep", "Page Turn"},
+      SettingInfo::Enum("Short Power Button Click", &CrossPointSettings::shortPwrBtn, {"Ignore", "Sleep", "Page Turn", "Block Front"},
                         "shortPwrBtn", "Controls"),
 
       // --- System ---

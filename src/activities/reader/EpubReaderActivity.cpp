@@ -184,12 +184,13 @@ void EpubReaderActivity::loop() {
     return;
   }
 
-  if (mappedInput.wasReleased(MappedInputManager::Button::Power)) {
+  if (mappedInput.wasReleased(MappedInputManager::Button::Power) &&
+      SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::BLOCK_FRONT) {
     ignoreFrontButtons = !ignoreFrontButtons;
-  }  
+  }
 
   // Enter reader menu activity.
-  if (mappedInput.isPressed(MappedInputManager::Button::Confirm) && (mappedInput.getHeldTime() >= goHomeMs || !ignoreFrontButtons)) {
+  if (mappedInput.isPressed(MappedInputManager::Button::Confirm) && mappedInput.getHeldTime() >= goHomeMs && !ignoreFrontButtons) {
     // Don't start activity transition while rendering
     xSemaphoreTake(renderingMutex, portMAX_DELAY);
     const int currentPage = section ? section->currentPage + 1 : 0;
@@ -209,7 +210,8 @@ void EpubReaderActivity::loop() {
   }
 
   // Long press BACK (1s+) goes to file selection
-  if (mappedInput.isPressed(MappedInputManager::Button::Back) && mappedInput.getHeldTime() >= goHomeMs) {
+  if (mappedInput.isPressed(MappedInputManager::Button::Back) && mappedInput.getHeldTime() >= goHomeMs &&
+      !ignoreFrontButtons) {
     onGoBack();
     return;
   }
@@ -226,8 +228,8 @@ void EpubReaderActivity::loop() {
                                     mappedInput.wasPressed(MappedInputManager::Button::Left) && !ignoreFrontButtons)
                                  : (mappedInput.wasReleased(MappedInputManager::Button::PageBack) ||
                                     mappedInput.wasReleased(MappedInputManager::Button::Left) && !ignoreFrontButtons);
-  const bool powerPageTurn = false; /*SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::PAGE_TURN &&
-                             mappedInput.wasReleased(MappedInputManager::Button::Power);*/
+  const bool powerPageTurn = SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::PAGE_TURN &&
+                             mappedInput.wasReleased(MappedInputManager::Button::Power);
   const bool nextTriggered = usePressForPageTurn
                                  ? (mappedInput.wasPressed(MappedInputManager::Button::PageForward) || powerPageTurn ||
                                     mappedInput.wasPressed(MappedInputManager::Button::Right) && !ignoreFrontButtons)
