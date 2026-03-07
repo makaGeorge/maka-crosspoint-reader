@@ -25,6 +25,8 @@ usability over "swiss-army-knife" functionality.
 * **Library Management:** E.g. Simple, intuitive ways to organize and navigate a collection of books.
 * **Local Transfer:** E.g. Simple, "pull" based book loading via a basic web-server or public and widely-used standards.
 * **Language Support:** E.g. Support for multiple languages both in the reader and in the interfaces.
+* **Reference Tools:** E.g. Local dictionary lookup. Providing quick, offline definitions to enhance comprehension 
+  without breaking focus.
 
 ### Out-of-Scope
 
@@ -34,8 +36,16 @@ usability over "swiss-army-knife" functionality.
 * **Active Connectivity:** No RSS readers, News aggregators, or Web browsers. Background Wi-Fi tasks drain the battery
   and complicate the single-core CPU's execution.
 * **Media Playback:** No Audio players or Audio-books.
-* **Complex Reader Features:** No highlighting, notes, or dictionary lookup. These features are better suited for
-  devices with better input capabilities and more powerful chips.
+* **Complex Annotation:** No typed out notes. These features are better suited for devices with better input
+  capabilities and more powerful chips.
+
+### In-scope — Technically Unsupported
+
+*These features align with CrossPoint's goals but are impractical on the current hardware or produce poor UX.*
+
+* **Clock Display:** The ESP32-C3's RTC drifts significantly during deep sleep; making the clock untrustworthy after any sleep cycle. NTP sync could help, but CrossPoint doesn't connect to the internet on every boot.
+
+* **PDF Rendering:** PDFs are fixed-layout documents, so rendering them requires displaying pages as images rather than reflowable text — resulting in constant panning and zooming that makes for a poor reading experience on e-ink.
 
 ## 3. Idea Evaluation
 

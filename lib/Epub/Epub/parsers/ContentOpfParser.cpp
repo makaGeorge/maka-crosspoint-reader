@@ -36,12 +36,10 @@ ContentOpfParser::~ContentOpfParser() {
   if (tempItemStore) {
     tempItemStore.close();
   }
-  if (Storage.exists((cachePath + itemCacheFile).c_str())) {
-    Storage.remove((cachePath + itemCacheFile).c_str());
+  const auto itemCachePath = cachePath + itemCacheFile;
+  if (Storage.exists(itemCachePath.c_str())) {
+    Storage.remove(itemCachePath.c_str());
   }
-  itemIndex.clear();
-  itemIndex.shrink_to_fit();
-  useItemIndex = false;
 }
 
 size_t ContentOpfParser::write(const uint8_t data) { return write(&data, 1); }
@@ -102,7 +100,10 @@ void XMLCALL ContentOpfParser::startElement(void* userData, const XML_Char* name
   }
 
   if (self->state == IN_METADATA && strcmp(name, "dc:title") == 0) {
-    self->state = IN_BOOK_TITLE;
+    // Only capture the first dc:title element; subsequent ones are subtitles
+    if (self->title.empty()) {
+      self->state = IN_BOOK_TITLE;
+    }
     return;
   }
 
@@ -296,23 +297,22 @@ void XMLCALL ContentOpfParser::startElement(void* userData, const XML_Char* name
   // parse the guide
   if (self->state == IN_GUIDE && (strcmp(name, "reference") == 0 || strcmp(name, "opf:reference") == 0)) {
     std::string type;
-    std::string textHref;
+    std::string guideHref;
     for (int i = 0; atts[i]; i += 2) {
       if (strcmp(atts[i], "type") == 0) {
         type = atts[i + 1];
-        if (type == "text" || type == "start") {
-          continue;
-        } else {
-          LOG_DBG("COF", "Skipping non-text reference in guide: %s", type.c_str());
-          break;
-        }
       } else if (strcmp(atts[i], "href") == 0) {
-        textHref = FsHelpers::normalisePath(self->baseContentPath + atts[i + 1]);
+        guideHref = FsHelpers::normalisePath(self->baseContentPath + atts[i + 1]);
       }
     }
-    if ((type == "text" || (type == "start" && !self->textReferenceHref.empty())) && (textHref.length() > 0)) {
-      LOG_DBG("COF", "Found %s reference in guide: %s.", type.c_str(), textHref.c_str());
-      self->textReferenceHref = textHref;
+    if (!guideHref.empty()) {
+      if (type == "text" || (type == "start" && !self->textReferenceHref.empty())) {
+        LOG_DBG("COF", "Found %s reference in guide: %s", type.c_str(), guideHref.c_str());
+        self->textReferenceHref = guideHref;
+      } else if ((type == "cover" || type == "cover-page") && self->guideCoverPageHref.empty()) {
+        LOG_DBG("COF", "Found cover reference in guide: %s", guideHref.c_str());
+        self->guideCoverPageHref = guideHref;
+      }
     }
     return;
   }
@@ -327,6 +327,9 @@ void XMLCALL ContentOpfParser::characterData(void* userData, const XML_Char* s, 
   }
 
   if (self->state == IN_BOOK_AUTHOR) {
+    if (!self->author.empty()) {
+      self->author.append(", ");  // Add separator for multiple authors
+    }
     self->author.append(s, len);
     return;
   }
