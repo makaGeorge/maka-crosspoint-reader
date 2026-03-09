@@ -138,11 +138,6 @@ void EpubReaderActivity::loop() {
     ignoreFrontButtons = !ignoreFrontButtons;
   }
 
-  if (mappedInput.wasReleased(MappedInputManager::Button::Power) &&
-      SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::BLOCK_FRONT) {
-    ignoreFrontButtons = !ignoreFrontButtons;
-  }
-
   // Enter reader menu activity.
   if (mappedInput.wasReleased(MappedInputManager::Button::Confirm) && !ignoreFrontButtons) {
     const int currentPage = section ? section->currentPage + 1 : 0;
