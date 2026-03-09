@@ -132,6 +132,11 @@ void EpubReaderActivity::loop() {
       return;
     }
   }
+  // Short power button if block front is enabled.
+  if (mappedInput.wasReleased(MappedInputManager::Button::Power) &&
+      SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::BLOCK_FRONT) {
+    ignoreFrontButtons = !ignoreFrontButtons;
+  }
 
   if (mappedInput.wasReleased(MappedInputManager::Button::Power) &&
       SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::BLOCK_FRONT) {
@@ -180,7 +185,7 @@ void EpubReaderActivity::loop() {
     return;
   }
 
-  auto [prevTriggered, nextTriggered] = ReaderUtils::detectPageTurn(mappedInput);
+  auto [prevTriggered, nextTriggered] = ReaderUtils::detectPageTurn(mappedInput, ignoreFrontButtons);
   if (!prevTriggered && !nextTriggered) {
     return;
   }
